@@ -20,7 +20,13 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, Category = "Presets")
+	float Force;
+
+	UPROPERTY(EditAnywhere, Category = "Presets")
+	TSubclassOf<AActor> SpawnedCube;
+
 public:	
 	UFUNCTION(BlueprintCallable, Category = "Presets")
-	void StartPushing(bool spawn);
+	void StartPushing(bool spawnCube);
 };

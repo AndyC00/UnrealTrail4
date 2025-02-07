@@ -2,6 +2,10 @@
 
 
 #include "PushCubeLogic.h"
+//if the pluin needs to be packed, it is necessary to include the reference file:
+#include "GameFrameWork/Actor.h"
+#include "Engine/World.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values for this component's properties
 UPushCubeLogic::UPushCubeLogic()
@@ -10,7 +14,7 @@ UPushCubeLogic::UPushCubeLogic()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
+	Force = 500.0f;
 }
 
 
@@ -21,5 +25,41 @@ void UPushCubeLogic::BeginPlay()
 
 	// ...
 	
+}
+
+void UPushCubeLogic::StartPushing(bool spawnCube)
+{
+	if (GetOwner())
+	{
+		FVector Start = GetOwner()->GetActorLocation();
+		FVector End = Start + (GetOwner()->GetActorForwardVector() * 300.0f);
+
+		if (spawnCube && SpawnedCube)
+		{
+			//spawn the cube
+			GetWorld()->SpawnActor<AActor>(SpawnedCube, End, FRotator(0,0,0) );
+		}
+
+		// shoot the ray, push the cube
+		FHitResult Hit;
+		FCollisionQueryParams QParams;
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, QParams);
+
+		//get the hit actor detected, get its Static Mesh Component
+		if (bHit)
+		{
+			UStaticMeshComponent* SMComp = Cast<UStaticMeshComponent>(Hit.GetActor()->GetRootComponent());
+			bool CubeMovable = Hit.GetActor()->IsRootComponentMovable();
+
+			if (CubeMovable && SMComp)
+			{
+				//show the testing ray
+				DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 0.5f);
+
+				//push the cube
+				SMComp->AddImpulse(GetOwner()->GetActorForwardVector() * SMComp->GetMass() * Force);
+			}
+		}
+	}
 }
 
